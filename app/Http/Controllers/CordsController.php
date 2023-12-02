@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\pin;
 use App\Models\pin_photos;
 use App\Models\photos;
+use App\Models\users;
 
 class CordsController extends Controller
 {
@@ -20,8 +21,9 @@ class CordsController extends Controller
         return response()->json($place);
     }   
     
-    public function cords_display_with_photos($id, Request $request)
+    public function cords_display_with_photos(Request $request)
     {
+        $id = $request->input('id');
         // Retrieve longitude, latitude, and photo_id for the given id from the pin table
         $pin = pin::select(['longitude', 'latitude', 'photo_id'])->find($id);
         
@@ -38,6 +40,7 @@ class CordsController extends Controller
             'longitude' => $pin->longitude,
             'latitude' => $pin->latitude,
             'photo_id' => $pin->photo_id,
+            'name' => $pin->name,
             'photos' => $photos->toArray(),
         ];
     
@@ -46,10 +49,10 @@ class CordsController extends Controller
     }
 
 
-    public function photos_display($id, Request $request)
+    public function photos_display(Request $request)
     {
         
-    
+        $id = $request->input('id');    
         // Retrieve photos related to the pin using the photo_id
         $photos = photos::where('pin_id', $id)->get();
     
@@ -99,15 +102,47 @@ class CordsController extends Controller
         return response()->json("true", JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
     }   
 
-    public function pinfeed($id){
-        //, Request $request
-        $pinid = $id;
-        //$pinid = $request->input('pinid');
+    public function pinfeed(Request $request){
+        $pinid = $request->input('pinid');
         $photos = photos::where('pin_id', $pinid)->get();
 
         return response()->json($photos, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
     }   
 
+    public function hello(){
+        $photos = photos::take(10)->orderBy('created_at', 'desc')->get();
+        return response()->json($photos, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+    }
+
+    public function friends(){
+        $user = users::where('id', auth()->user()->id)->first();
+        $friendIds = $user->friends;
+        $friends = users::whereIn('id', explode(',', $friendIds))->get(['id', 'name', 'base64']);
+        return response()->json($friends, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+    }
+
+    public function friendshow(Request $request){
+        $id = $request->input('id');
+        $user = users::where('id', $id)->first();
+        $photos = photos::where('user_id', $user->id)->get(['id','pin_id','name', 'base64', 'likes', 'description']);
+        return response()->json($photos, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+    }
+
+    public function friendfind(Request $request){
+        $user = auth()->user();
+        $friendname = $request->input('name');
+        $friendid = users::where('name', $friendname)->first()->id;
+        if(users::where('name', $friendname)->exists()){
+            $user = users::where('id', $user->id)->first();
+            $friends = $user->friends;
+            $newfriends = $friends . ", " . $friendid;
+            return true;
+        }
+        else{
+            return false;
+        }
+        
+    }
 
 
 

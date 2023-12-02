@@ -23,18 +23,24 @@ Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
+
+Route::get('/hello', [CordsController::class, 'hello']);
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    Route::get('/koordynaty', [CordsController::class, 'cords_display']);
-    Route::get('/koordynat/{id}', [CordsController::class, 'cords_display_with_photos']);
-    Route::get('/photos/{id}', [CordsController::class, 'photos_display']);
-    Route::get('/userinfo', [CordsController::class, 'user_info']);
-    Route::get('/feed', [CordsController::class, 'feed']);
+    Route::post('/koordynaty', [CordsController::class, 'cords_display']);
+    Route::post('/koordynat/{id}', [CordsController::class, 'cords_display_with_photos']);
+    Route::post('/photos/{id}', [CordsController::class, 'photos_display']);
+    Route::post('/userinfo', [CordsController::class, 'user_info']);
+    Route::post('/feed', [CordsController::class, 'feed']);
     Route::post('/post_image', [CordsController::class, 'post_image']);
     Route::post('/like', [CordsController::class, 'like']);
-    Route::get('/pinfeed/{id}', [CordsController::class, 'pinfeed']);
+    Route::post('/pinfeed/{id}', [CordsController::class, 'pinfeed']);
+    Route::post('/friends', [CordsController::class, 'friends']);
+    Route::post('/friends/{id}', [CordsController::class, 'friendshow']);
+    Route::post('/friendfind', [CordsController::class, 'friendfind']);
 });
 
 require __DIR__.'/auth.php';
